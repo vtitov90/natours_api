@@ -1,9 +1,11 @@
 /* eslint-disable */
 import { showAlert } from './alert';
-
+import { axiosWithAuth } from '../../utils/axiosWithAuth';
 export const bookTour = async (tourId) => {
   try {
-    const session = await axios(`/api/v1/bookings/checkout-session/${tourId}`);
+    const session = await axiosWithAuth(
+      `/api/v1/bookings/checkout-session/${tourId}`,
+    );
     location.assign(session.data.session.url);
   } catch (err) {
     console.error('Booking error:', err);

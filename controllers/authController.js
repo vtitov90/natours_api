@@ -11,13 +11,32 @@ const signToken = (id) =>
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 
-const createSendToken = (user, statusCode, req, res) => {
-  const token = signToken(user._id);
+const signRefreshToken = (id) =>
+  jwt.sign({ id }, process.env.REFRESH_TOKEN_SECRET, {
+    expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,
+  });
 
-  res.cookie('jwt', token, {
-    expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
-    ),
+const createSendToken = async (user, statusCode, req, res) => {
+  const accessToken = signToken(user._id);
+  const refreshToken = signRefreshToken(user._id);
+
+  user.refreshToken = refreshToken;
+  await user.save({ validateBeforeSave: false });
+
+  res.cookie('jwt', accessToken, {
+    // maxAge: new Date(
+    //   Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 60 * 1000,
+    // ),
+    maxAge: 1000 * 60 * 0.125,
+    httpOnly: true,
+    secure: req.secure || req.get('x-forwarded-proto') === 'https',
+  });
+
+  res.cookie('refresh', refreshToken, {
+    // maxAge: new Date(
+    //   Date.now() + process.env.REFRESH_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
+    // ),
+    maxAge: 1000 * 60 * 10,
     httpOnly: true,
     secure: req.secure || req.get('x-forwarded-proto') === 'https',
   });
@@ -27,12 +46,42 @@ const createSendToken = (user, statusCode, req, res) => {
 
   res.status(statusCode).json({
     status: 'success',
-    token,
+    accessToken,
     data: {
       user,
     },
   });
 };
+
+exports.refreshToken = catchAsync(async (req, res, next) => {
+  const token = req.cookies.refresh;
+  if (!token) {
+    return next(new AppError('Refresh token missing', 401));
+  }
+
+  const decoded = await promisify(jwt.verify)(
+    token,
+    process.env.REFRESH_TOKEN_SECRET,
+  );
+
+  const user = await User.findById(decoded.id).select('+refreshToken');
+  if (!user || user.refreshToken !== token) {
+    return next(new AppError('Invalid refresh token', 403));
+  }
+
+  const newAccessToken = signToken(user._id);
+
+  res.cookie('jwt', newAccessToken, {
+    maxAge: 1000 * 60 * 0.25,
+    httpOnly: true,
+    secure: req.secure || req.get('x-forwarded-proto') === 'https',
+  });
+
+  res.status(200).json({
+    status: 'success',
+    accessToken: newAccessToken,
+  });
+});
 
 exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
@@ -65,81 +114,179 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // 3) If everything is ok, send token to client
-  createSendToken(user, 200, req, res);
+  await createSendToken(user, 200, req, res);
 });
 
-exports.logout = (req, res) => {
+exports.logout = async (req, res) => {
   res.clearCookie('jwt');
+  res.clearCookie('refresh');
+
+  if (req.user) {
+    const user = await User.findById(req.user.id).select('+refreshToken');
+    if (user) {
+      user.refreshToken = undefined;
+      await user.save({ validateBeforeSave: false });
+    }
+  }
   res.status(200).json({
     status: 'success',
   });
 };
 
 exports.protect = catchAsync(async (req, res, next) => {
-  // 1) Getting the token and check if it's there
+  const refreshToken = req.cookies.refresh;
   let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    token = req.headers.authorization.split(' ')[1];
-  } else if (req.cookies.jwt) {
+  let freshUser;
+  let tokenIat;
+
+  if (req.cookies.jwt) {
     token = req.cookies.jwt;
+  } else if (req.headers.authorization?.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
   }
 
-  if (!token) {
+  try {
+    // Пытаемся верифицировать основной JWT
+    if (token) {
+      const decoded = await promisify(jwt.verify)(
+        token,
+        process.env.JWT_SECRET,
+      );
+      tokenIat = decoded.iat;
+      freshUser = await User.findById(decoded.id);
+    } else {
+      throw new Error('No access token');
+    }
+  } catch (err) {
+    // Если основной JWT недействителен или отсутствует, пробуем refresh token
+    if (!refreshToken) return next(new AppError('Please log in', 401));
+
+    try {
+      const decodedRefresh = await promisify(jwt.verify)(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET,
+      );
+
+      const user = await User.findById(decodedRefresh.id).select(
+        '+refreshToken',
+      );
+
+      if (!user || user.refreshToken !== refreshToken) {
+        return next(new AppError('Invalid refresh token', 403));
+      }
+
+      const newAccessToken = jwt.sign(
+        { id: user._id },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: process.env.JWT_EXPIRES_IN,
+        },
+      );
+
+      res.cookie('jwt', newAccessToken, {
+        maxAge: 1000 * 60 * 0.25,
+        httpOnly: true,
+        secure: req.secure || req.get('x-forwarded-proto') === 'https',
+      });
+
+      // При использовании refresh token пропускаем проверку смены пароля,
+      // так как refresh token действителен и проверен
+      freshUser = user;
+      // Устанавливаем tokenIat в null, чтобы пропустить проверку смены пароля
+      tokenIat = null;
+    } catch {
+      return next(new AppError('Session expired, please log in again', 401));
+    }
+  }
+
+  // Общие проверки для обоих путей выполнения
+  if (!freshUser) {
     return next(
-      new AppError('You are not logged in! Please log in to get access.', 401),
+      new AppError('The user belonging to this token no longer exists.', 401),
     );
   }
-  // 2) Verification token
-  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
-  // 3) Check if user still exists
-  const curUser = await User.findById(decoded.id);
-  if (!curUser) {
+  // Проверяем смену пароля только если есть tokenIat
+  if (
+    tokenIat &&
+    freshUser.changedPasswordAfter &&
+    freshUser.changedPasswordAfter(tokenIat)
+  ) {
     return next(
-      new AppError(
-        'The user belonging to this token does no longer exist.',
-        401,
-      ),
+      new AppError('User recently changed password! Please log in again.', 401),
     );
   }
 
-  // 4) Check if user change password after the token was issued
-  if (curUser.changedPasswordAfter(decoded.iat))
-    return next(
-      new AppError('User recently changed password!Please log in again', 401),
-    );
+  // Добавляем пользователя в req и res.locals
+  req.user = freshUser;
+  res.locals.user = freshUser;
 
-  // GRANT ACCESS TO PROTECTED ROUTE
-  req.user = curUser;
-  res.locals.user = curUser;
+  // Переходим к следующему middleware
   next();
 });
 
 // Only for render pages, no errors!
 exports.isLoggedIn = catchAsync(async (req, res, next) => {
-  if (req.cookies.jwt) {
-    // 1) Verify token
-    const decoded = await promisify(jwt.verify)(
+  console.log('#');
+  if (!req.cookies.jwt && !req.cookies.refresh) {
+    return next();
+  }
+  console.log('##');
+  let decoded;
+
+  try {
+    decoded = await promisify(jwt.verify)(
       req.cookies.jwt,
       process.env.JWT_SECRET,
     );
+  } catch (err) {
+    if (req.cookies.refresh) {
+      try {
+        const refreshDecoded = await promisify(jwt.verify)(
+          req.cookies.refresh,
+          process.env.REFRESH_TOKEN_SECRET,
+        );
 
-    // 2) Check if user still exists
-    const curUser = await User.findById(decoded.id);
-    if (!curUser) {
+        const user = await User.findById(refreshDecoded.id).select(
+          '+refreshToken',
+        );
+
+        if (!user || user.refreshToken !== req.cookies.refresh) {
+          return next();
+        }
+
+        const newAccessToken = jwt.sign(
+          { id: user._id },
+          process.env.JWT_SECRET,
+          {
+            expiresIn: process.env.JWT_EXPIRES_IN,
+          },
+        );
+
+        res.cookie('jwt', newAccessToken, {
+          maxAge: 1000 * 60 * 0.125,
+          httpOnly: true,
+          secure: req.secure || req.get('x-forwarded-proto') === 'https',
+        });
+
+        decoded = await promisify(jwt.verify)(
+          newAccessToken,
+          process.env.JWT_SECRET,
+        );
+      } catch (err2) {
+        return next();
+      }
+    } else {
       return next();
     }
-
-    // 3) Check if user change password after the token was issued
-    if (curUser.changedPasswordAfter(decoded.iat)) return next();
-
-    // THERE IS A LOGGED IN USER
-    res.locals.user = curUser;
-    return next();
   }
+
+  const curUser = await User.findById(decoded.id);
+  if (!curUser) return next();
+
+  if (curUser.changedPasswordAfter(decoded.iat)) return next();
+
+  res.locals.user = curUser;
   next();
 });
 
