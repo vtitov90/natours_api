@@ -24,19 +24,13 @@ const createSendToken = async (user, statusCode, req, res) => {
   await user.save({ validateBeforeSave: false });
 
   res.cookie('jwt', accessToken, {
-    // maxAge: new Date(
-    //   Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 60 * 1000,
-    // ),
-    maxAge: 1000 * 60 * 0.125,
+    maxAge: process.env.JWT_COOKIE_EXPIRES_IN * 60 * 1000,
     httpOnly: true,
     secure: req.secure || req.get('x-forwarded-proto') === 'https',
   });
 
   res.cookie('refresh', refreshToken, {
-    // maxAge: new Date(
-    //   Date.now() + process.env.REFRESH_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
-    // ),
-    maxAge: 1000 * 60 * 10,
+    maxAge: process.env.REFRESH_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
     httpOnly: true,
     secure: req.secure || req.get('x-forwarded-proto') === 'https',
   });
@@ -72,7 +66,7 @@ exports.refreshToken = catchAsync(async (req, res, next) => {
   const newAccessToken = signToken(user._id);
 
   res.cookie('jwt', newAccessToken, {
-    maxAge: 1000 * 60 * 0.25,
+    maxAge: process.env.JWT_COOKIE_EXPIRES_IN * 60 * 1000,
     httpOnly: true,
     secure: req.secure || req.get('x-forwarded-proto') === 'https',
   });
@@ -146,7 +140,6 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   try {
-    // Пытаемся верифицировать основной JWT
     if (token) {
       const decoded = await promisify(jwt.verify)(
         token,
@@ -158,7 +151,6 @@ exports.protect = catchAsync(async (req, res, next) => {
       throw new Error('No access token');
     }
   } catch (err) {
-    // Если основной JWT недействителен или отсутствует, пробуем refresh token
     if (!refreshToken) return next(new AppError('Please log in', 401));
 
     try {
@@ -184,29 +176,25 @@ exports.protect = catchAsync(async (req, res, next) => {
       );
 
       res.cookie('jwt', newAccessToken, {
-        maxAge: 1000 * 60 * 0.25,
+        maxAge: process.env.JWT_COOKIE_EXPIRES_IN * 60 * 1000,
         httpOnly: true,
         secure: req.secure || req.get('x-forwarded-proto') === 'https',
       });
 
-      // При использовании refresh token пропускаем проверку смены пароля,
-      // так как refresh token действителен и проверен
       freshUser = user;
-      // Устанавливаем tokenIat в null, чтобы пропустить проверку смены пароля
+
       tokenIat = null;
     } catch {
       return next(new AppError('Session expired, please log in again', 401));
     }
   }
 
-  // Общие проверки для обоих путей выполнения
   if (!freshUser) {
     return next(
       new AppError('The user belonging to this token no longer exists.', 401),
     );
   }
 
-  // Проверяем смену пароля только если есть tokenIat
   if (
     tokenIat &&
     freshUser.changedPasswordAfter &&
@@ -217,11 +205,9 @@ exports.protect = catchAsync(async (req, res, next) => {
     );
   }
 
-  // Добавляем пользователя в req и res.locals
   req.user = freshUser;
   res.locals.user = freshUser;
 
-  // Переходим к следующему middleware
   next();
 });
 
@@ -264,7 +250,7 @@ exports.isLoggedIn = catchAsync(async (req, res, next) => {
         );
 
         res.cookie('jwt', newAccessToken, {
-          maxAge: 1000 * 60 * 0.125,
+          maxAge: process.env.JWT_COOKIE_EXPIRES_IN * 60 * 1000,
           httpOnly: true,
           secure: req.secure || req.get('x-forwarded-proto') === 'https',
         });
