@@ -1,0 +1,30 @@
+extends base
+
+include _noEntries
+
+block content
+  main.main
+    if reviews && reviews.length > 0
+      each review in reviews
+        .review__container
+          if review.tour
+            img.review__image(src=`/img/tours/${review.tour.imageCover}`, alt=`${review.tour.name}`)
+            .review_info__container
+              h2= review.tour.name
+              hr
+              p= review.review
+              hr
+              .review_info__footer
+                .reviews_info__stars
+                  each star in [1, 2, 3, 4, 5]
+                    svg.reviews__star(class=`reviews__star--${review.rating >= star ? 'active': 'inactive'}`)
+                      use(xlink:href='/img/icons.svg#icon-star')
+                .review_info__buttons
+                  a#update-tour.btn.btn--green.btn--small.btn--edit(href=`/reviews/${review.id}/edit`) Edit
+                  a#delete-tour.btn.btn--green-dark.btn--small.btn--delete(href="#", data-review-id=`${review.id}`) Delete
+          else
+            h3 Tour no longer available
+            h4= review.review
+    else
+      +noEntries("You haven't write any reviews yet",'Explore our exciting tours and share your emotions!','Write Review','/my-tours')
+      .no-info

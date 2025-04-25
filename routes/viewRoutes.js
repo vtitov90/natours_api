@@ -19,6 +19,18 @@ router.get(
   authController.protect,
   viewsController.getMyTours,
 );
+router.get('/my-reviews', authController.protect, viewsController.getMyReviews);
+router.get(
+  '/reviews/:id/edit',
+  authController.protect,
+  viewsController.getEditReviewForm,
+);
+
+router.get(
+  '/reviews/new/:tourId',
+  authController.protect,
+  viewsController.getEditReviewForm,
+);
 
 router.post(
   '/submit-user-data',

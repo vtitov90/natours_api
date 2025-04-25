@@ -8,17 +8,16 @@ router.use(authController.protect);
 
 router.get('/checkout-session/:tourId', bookingController.getCheckoutSession);
 
+router.route('/').get(bookingController.getAllBookings);
+router.route('/:id').delete(bookingController.deleteBooking);
+
 router.use(authController.restrictTo('lead-guide', 'admin'));
 
-router
-  .route('/')
-  .get(bookingController.getAllBookings)
-  .post(bookingController.createBooking);
+router.route('/').post(bookingController.createBooking);
 
 router
   .route('/:id')
   .get(bookingController.getBooking)
-  .patch(bookingController.updateBooking)
-  .delete(bookingController.deleteBooking);
+  .patch(bookingController.updateBooking);
 
 module.exports = router;

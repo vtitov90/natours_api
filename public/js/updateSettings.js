@@ -26,7 +26,7 @@ export const updateSettings = async (data, type) => {
 
         window.setTimeout(() => {
           window.location.href = '/me'; // or location.reload()
-        }, 500);
+        }, 700);
       } catch (refreshError) {
         showAlert('error', 'Session expired. Please log in again.');
         window.location.href = '/login';

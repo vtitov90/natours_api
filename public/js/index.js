@@ -5,6 +5,12 @@ import { login, logout } from './login';
 import { signup } from './signup';
 import { updateSettings } from './updateSettings';
 import { bookTour } from './stripe';
+import {
+  createReview,
+  updateReview,
+  deleteReview,
+  deleteBooking,
+} from './apiFactory.js';
 import { showAlert } from './alert';
 
 // DOM ELEMENTS
@@ -14,6 +20,11 @@ const logOutBtn = document.querySelector('.nav__el--logout');
 const userDataForm = document.querySelector('.form-user-data');
 const userPasswordForm = document.querySelector('.form-user-password');
 const bookBtn = document.getElementById('book-tour');
+const ratingSlider = document.getElementById('rating');
+const ratingValueDisplay = document.querySelector('.rating-value');
+const reviewForm = document.querySelector('.review-form');
+const deleteButtons = document.querySelectorAll('[id=delete-tour]');
+const cancelButtons = document.querySelectorAll('[id=cancel]');
 // DELEGATION
 if (mapBox) {
   const locations = JSON.parse(mapBox.dataset.locations);
@@ -72,6 +83,61 @@ if (bookBtn) {
     e.target.textContent = 'Processing...';
     const { tourId } = e.target.dataset;
     bookTour(tourId);
+  });
+}
+
+if (ratingSlider) {
+  ratingSlider.addEventListener('input', function () {
+    ratingValueDisplay.textContent = this.value;
+  });
+
+  ratingSlider.addEventListener('change', function () {
+    ratingValueDisplay.textContent = parseFloat(this.value).toFixed(1);
+  });
+}
+
+if (reviewForm) {
+  reviewForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const review = document.getElementById('review').value;
+    const rating = document.getElementById('rating').value;
+    let id;
+    if (window.location.pathname.split('/').includes('edit')) {
+      id = window.location.pathname.split('/')[2];
+      updateReview(id, { review, rating });
+      return;
+    }
+    id = window.location.pathname.split('/').pop();
+    createReview(id, { review, rating });
+  });
+}
+
+if (deleteButtons.length > 0) {
+  deleteButtons.forEach((button) => {
+    button.addEventListener('click', function (e) {
+      e.preventDefault();
+
+      const reviewId = this.dataset.reviewId;
+      if (confirm('Are you sure you want to delete this review?')) {
+        deleteReview(reviewId);
+      }
+
+      return false;
+    });
+  });
+}
+
+if (cancelButtons.length > 0) {
+  cancelButtons.forEach((button) => {
+    button.addEventListener('click', function (e) {
+      e.preventDefault();
+      const bookingId = this.dataset.bookingId;
+      if (confirm('Are you sure you want to cancel this booking?')) {
+        deleteBooking(bookingId);
+      }
+
+      return false;
+    });
   });
 }
 

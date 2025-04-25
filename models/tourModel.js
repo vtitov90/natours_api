@@ -163,6 +163,19 @@ tourSchema.pre(/^find/, function (next) {
   next();
 });
 
+tourSchema.pre('findOneAndDelete', async function (next) {
+  const tour = await this.model.findOne(this.getQuery());
+
+  this._tourId = tour._id;
+  next();
+});
+
+tourSchema.post('findOneAndDelete', async function () {
+  if (this._tourId) {
+    await this.model('Review').deleteMany({ tour: this._tourId });
+  }
+});
+
 // tourSchema.post(/^find/, function (docs, next) {
 //   console.log(`Query took ${Date.now() - this.start} miliseconds!`);
 //   // console.log(docs);
