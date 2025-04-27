@@ -9,6 +9,8 @@ import {
   createReview,
   updateReview,
   deleteReview,
+  createBooking,
+  updateBooking,
   deleteBooking,
 } from './apiFactory.js';
 import { showAlert } from './alert';
@@ -23,6 +25,7 @@ const bookBtn = document.getElementById('book-tour');
 const ratingSlider = document.getElementById('rating');
 const ratingValueDisplay = document.querySelector('.rating-value');
 const reviewForm = document.querySelector('.review-form');
+const bookingForm = document.querySelector('.booking-form');
 const deleteButtons = document.querySelectorAll('[id=delete-tour]');
 const cancelButtons = document.querySelectorAll('[id=cancel]');
 // DELEGATION
@@ -109,6 +112,24 @@ if (reviewForm) {
     }
     id = window.location.pathname.split('/').pop();
     createReview(id, { review, rating });
+  });
+}
+
+if (bookingForm) {
+  bookingForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const tour = document.getElementById('tour').value;
+    const user = document.getElementById('user').value;
+    const price = document.getElementById('price').value;
+    const createdAt = Date.now();
+    let id;
+    if (window.location.pathname.split('/').includes('edit')) {
+      id = window.location.pathname.split('/')[2];
+      console.log(price);
+      updateBooking(id, { tour, user, price, createdAt, id });
+      return;
+    }
+    createBooking(id, { tour, user, price, createdAt, id });
   });
 }
 

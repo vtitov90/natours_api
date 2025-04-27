@@ -15,7 +15,6 @@ router
   .route('/')
   .get(reviewController.getAllReviews)
   .post(
-    authController.restrictTo('user'),
     reviewController.setTourUserIds,
     reviewController.checkIfUserBookedTour,
     reviewController.createReview,
@@ -24,15 +23,7 @@ router
 router
   .route('/:id')
   .get(reviewController.getReview)
-  .patch(
-    authController.restrictTo('user', 'admin'),
-    reviewController.checkIfUserReview,
-    reviewController.updateReview,
-  )
-  .delete(
-    authController.restrictTo('user', 'admin'),
-    reviewController.checkIfUserReview,
-    reviewController.deleteReview,
-  );
+  .patch(reviewController.checkIfUserReview, reviewController.updateReview)
+  .delete(reviewController.checkIfUserReview, reviewController.deleteReview);
 
 module.exports = router;

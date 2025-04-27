@@ -9,7 +9,12 @@ router.use(authController.protect);
 router.get('/checkout-session/:tourId', bookingController.getCheckoutSession);
 
 router.route('/').get(bookingController.getAllBookings);
-router.route('/:id').delete(bookingController.deleteBooking);
+router
+  .route('/:id')
+  .delete(
+    bookingController.checkIfUserBooking,
+    bookingController.deleteBooking,
+  );
 
 router.use(authController.restrictTo('lead-guide', 'admin'));
 

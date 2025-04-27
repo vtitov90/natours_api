@@ -27,15 +27,41 @@ router.get(
 );
 
 router.get(
+  '/bookings/:id/edit',
+  authController.protect,
+  viewsController.getEditBookingForm,
+);
+
+router.get(
   '/reviews/new/:tourId',
   authController.protect,
   viewsController.getEditReviewForm,
+);
+
+router.get(
+  '/bookings/new',
+  authController.protect,
+  viewsController.getEditBookingForm,
 );
 
 router.post(
   '/submit-user-data',
   authController.protect,
   viewsController.updateUserData,
+);
+
+router.get(
+  '/reviews-list',
+  authController.protect,
+  authController.restrictTo('admin'),
+  viewsController.getAllReviews,
+);
+
+router.get(
+  '/bookings-list',
+  authController.protect,
+  authController.restrictTo('admin'),
+  viewsController.getAllBookings,
 );
 
 module.exports = router;

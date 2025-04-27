@@ -74,38 +74,44 @@ export const createApiHandler = (
 export const updateReview = createApiHandler(
   'reviews',
   'update',
-  '/my-reviews',
+  '/me',
   'Review updated successfully!',
 );
 export const createReview = createApiHandler(
   'reviews',
   'createReview',
-  '/my-reviews',
+  '/me',
   'Review created successfully!',
 );
 export const deleteReview = createApiHandler(
   'reviews',
   'delete',
-  '/my-reviews',
+  '/me',
   'Review deleted successfully!',
 );
 
 export const updateTour = createApiHandler(
   'tours',
   'update',
-  '/my-tours',
+  '/me',
   'Tour updated successfully!',
 );
 export const createBooking = createApiHandler(
   'bookings',
   'create',
-  '/my-bookings',
+  '/me',
+  'Booking created successfully!',
+);
+export const updateBooking = createApiHandler(
+  'bookings',
+  'update',
+  '/me',
   'Booking created successfully!',
 );
 
 export const deleteBooking = createApiHandler(
   'bookings',
   'delete',
-  '/my-tours',
+  '/me',
   'Booking canceled successfully!',
 );

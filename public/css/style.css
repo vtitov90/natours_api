@@ -638,7 +638,7 @@ hr {
 
 .review__container {
   border: 4px solid #7dd56f;
-  width: 85%;
+  width: 87%;
   display: flex;
   gap: 30px;
   font-size: 1.6rem;
@@ -673,6 +673,10 @@ hr {
   gap: 10px;
 }
 
+.review_par {
+  color: #7dd56f;
+}
+
 .reviews {
   padding: 5rem 0;
   display: grid;
@@ -683,10 +687,18 @@ hr {
   scroll-snap-type: x mandatory;
 }
 
+.review_header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+}
+
 .review_info__container {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: start;
   gap: 25px;
   margin: 3rem auto;
   width: 100%;
@@ -1322,6 +1334,16 @@ hr {
   margin-top: auto;
 }
 
+.card__footer_booking {
+  background-color: #f7f7f7;
+  padding: 2.5rem 3rem;
+  border-top: 1px solid #f1f1f1;
+  font-size: 1.4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .card__footer-value {
   font-weight: 700;
 }
@@ -1340,6 +1362,24 @@ hr {
   justify-self: end;
   -ms-flex-item-align: center;
   align-self: center;
+}
+
+.book__info {
+  margin: 10px auto;
+  font-size: 1.6rem;
+  width: 80%;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  gap: 1.5rem;
+}
+
+.book__img {
+  height: 4.5rem;
+  width: 4.5rem;
+  border-radius: 50%;
+  margin-right: 2rem;
 }
 
 .error {
@@ -1437,6 +1477,20 @@ hr {
   box-sizing: border-box;
   /* Pseudo element (a visible thing that isn't really in the DOM).
       Also needs -ms- */
+}
+
+select.form__input::-webkit-scrollbar {
+  width: 14px;
+}
+
+select.form__input::-webkit-scrollbar-track {
+  background: #f2f2f2;
+  border-radius: 10px;
+}
+
+select.form__input::-webkit-scrollbar-thumb {
+  background-color: #55c57a;
+  border-radius: 10px;
 }
 
 .form__input:focus, .form__textarea:focus {
@@ -1608,4 +1662,54 @@ hr {
       from(#7dd56f),
       to(#28b487));
   -webkit-box-shadow: 0 2rem 4rem rgba(0, 0, 0, 0.25);
+}
+
+/* Add Booking Button Styles */
+.add-booking-container {
+  display: flex;
+  justify-content: center;
+  margin: 4rem 0;
+}
+
+.btn-add-booking {
+  background-image: linear-gradient(to right bottom, #7dd56f, #28b487);
+  border-radius: 50%;
+  height: 6.5rem;
+  width: 6.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.3);
+  transition: all 0.2s;
+  position: relative;
+}
+
+.btn-add-booking:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 2rem 5rem rgba(0, 0, 0, 0.4);
+}
+
+.btn-add-booking:active {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.2);
+}
+
+.btn-add-booking__icon {
+  height: 2.5rem;
+  width: 2.5rem;
+  fill: #fff;
+}
+
+/* For mobile responsiveness */
+@media only screen and (max-width: 37.5em) {
+  .btn-add-booking {
+    height: 5.5rem;
+    width: 5.5rem;
+  }
+
+  .btn-add-booking__icon {
+    height: 2rem;
+    width: 2rem;
+  }
 }
