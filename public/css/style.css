@@ -180,6 +180,10 @@ body {
   z-index: 10;
 }
 
+.heading-block {
+  display: block;
+}
+
 .btn,
 .btn:link,
 .btn:visited {
@@ -311,6 +315,10 @@ body {
   text-align: center;
   width: 10rem;
   padding: 1.25rem 0 !important;
+}
+
+.btn-margin {
+  margin: 2.5rem 0;
 }
 
 .header {
@@ -1652,11 +1660,6 @@ select.form__input::-webkit-scrollbar-thumb {
 }
 
 
-::-webkit-scrollbar {
-  height: 20px;
-  width: 20px;
-  background: #000;
-}
 
 ::-webkit-scrollbar-track {
   border-radius: 0;

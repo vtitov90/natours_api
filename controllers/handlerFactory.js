@@ -2,6 +2,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const APIFeatures = require('../utils/apiFeatures');
 const User = require('../models/userModel');
+const Tour = require('../models/tourModel');
 
 exports.deleteOne = (Model) =>
   catchAsync(async (req, res, next) => {
@@ -22,10 +23,18 @@ exports.deleteOne = (Model) =>
 exports.updateOne = (Model) =>
   catchAsync(async (req, res, next) => {
     if (req.file) req.body.photo = req.file.filename;
-    const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    let doc;
+    if (Model === Tour) {
+      doc = await Tour.findOneAndUpdate({ slug: req.params.id }, req.body, {
+        new: true,
+        runValidators: true,
+      });
+    } else {
+      doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true,
+      });
+    }
 
     if (!doc) {
       return next(new AppError('No document found with that ID', 404));

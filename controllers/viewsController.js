@@ -151,6 +151,15 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getAllTours = catchAsync(async (req, res, next) => {
+  const tours = await Tour.find();
+
+  res.status(200).render('tours', {
+    title: 'All Tours',
+    tours,
+  });
+});
+
 exports.getTour = catchAsync(async (req, res, next) => {
   const tour = await Tour.findOne({ slug: req.params.slug }).populate({
     path: 'reviews',
@@ -332,6 +341,19 @@ exports.getEditUserForm = async (req, res) => {
   }
 
   res.render('userForm', { user });
+};
+
+exports.getEditTourForm = async (req, res) => {
+  let tour;
+  if (req.params.slug) {
+    tour = await Tour.findOne({ slug: req.params.slug }).populate({
+      path: 'guides',
+      select: 'name imageCover',
+    });
+  }
+  const users = await User.find({ role: { $in: ['guide', 'lead-guide'] } });
+  console.log(users);
+  res.render('tourForm', { tour, guides: users });
 };
 
 exports.updateUserData = catchAsync(async (req, res, next) => {

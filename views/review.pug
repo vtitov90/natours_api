@@ -41,8 +41,8 @@ block content
                     svg.reviews__star(class=`reviews__star--${review.rating >= star ? 'active': 'inactive'}`)
                       use(xlink:href='/img/icons.svg#icon-star')
                 .review_info__buttons
-                  a#update-tour.btn.btn--green.btn--small.btn--edit(href=`/reviews/${review.id}/edit`) Edit
-                  a#delete-tour.btn.btn--green-dark.btn--small.btn--delete(href="#", data-review-id=`${review.id}`) Delete
+                  a#update-review.btn.btn--green.btn--small.btn--edit(href=`/reviews/${review.id}/edit`) Edit
+                  a#delete-review.btn.btn--green-dark.btn--small.btn--delete(href="#", data-review-id=`${review.id}`) Delete
           else
             h3 Tour no longer available
             h4= review.review

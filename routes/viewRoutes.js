@@ -84,4 +84,23 @@ router.get(
   viewsController.getAllUsers,
 );
 
+router.get(
+  '/tour-list',
+  authController.protect,
+  authController.restrictTo('admin', 'lead-guide', 'guide'),
+  viewsController.getAllTours,
+);
+
+router.get(
+  '/tours/new',
+  authController.protect,
+  viewsController.getEditTourForm,
+);
+
+router.get(
+  '/tours/:slug/edit',
+  authController.protect,
+  viewsController.getEditTourForm,
+);
+
 module.exports = router;

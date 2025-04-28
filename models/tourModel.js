@@ -176,6 +176,35 @@ tourSchema.post('findOneAndDelete', async function () {
   }
 });
 
+tourSchema.post('deleteOne', async function () {
+  if (this._tourId) {
+    await this.model('Review').deleteMany({ tour: this._tourId });
+  }
+});
+
+tourSchema.post('findByIdAndDelete', async function () {
+  if (this._tourId) {
+    await this.model('Review').deleteMany({ tour: this._tourId });
+  }
+});
+
+// Для массового удаления туров
+tourSchema.pre('deleteMany', async function (next) {
+  // Сохраняем идентификаторы туров, которые будут удалены
+  const tours = await this.model.find(this.getQuery()).select('_id');
+  this._tourIds = tours.map((tour) => tour._id);
+  next();
+});
+
+tourSchema.post('deleteMany', async function () {
+  if (this._tourIds && this._tourIds.length > 0) {
+    // Удаляем только связанные ревью для каждого тура
+    for (const tourId of this._tourIds) {
+      await this.model('Review').deleteMany({ tour: tourId });
+    }
+  }
+});
+
 // tourSchema.post(/^find/, function (docs, next) {
 //   console.log(`Query took ${Date.now() - this.start} miliseconds!`);
 //   // console.log(docs);

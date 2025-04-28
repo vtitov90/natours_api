@@ -90,12 +90,6 @@ export const deleteReview = createApiHandler(
   'Review deleted successfully!',
 );
 
-export const updateTour = createApiHandler(
-  'tours',
-  'update',
-  '/me',
-  'Tour updated successfully!',
-);
 export const createBooking = createApiHandler(
   'bookings',
   'create',
@@ -135,4 +129,25 @@ export const deactivateUser = createApiHandler(
   'delete',
   '/me',
   'User deactivated successfully!',
+);
+
+export const createTour = createApiHandler(
+  'tours',
+  'create',
+  '/me',
+  'Tour created successfully!',
+);
+
+export const updateTour = createApiHandler(
+  'tours',
+  'update',
+  '/me',
+  'Tour updated successfully!',
+);
+
+export const deleteTour = createApiHandler(
+  'tours',
+  'delete',
+  '/me',
+  'Tour deleted successfully!',
 );
