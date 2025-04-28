@@ -54,7 +54,7 @@ block content
               p.card__footer-value= `$ ${tour.price}/pers`
               a#cancel.btn.btn--green.btn--small.btn__booking(href="#" data-booking-id=`${tour.bookingId}`) Cancel
       
-      //- Показываем кнопку Add Booking только если хотя бы один тур не имеет свойства isMyBooking
+    
       if tours.some(tour => !tour.isMyBooking)
         .add-booking-container
           a.btn-add-booking(href="/bookings/new") 

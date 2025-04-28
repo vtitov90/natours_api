@@ -106,7 +106,7 @@ export const updateBooking = createApiHandler(
   'bookings',
   'update',
   '/me',
-  'Booking created successfully!',
+  'Booking updated successfully!',
 );
 
 export const deleteBooking = createApiHandler(
@@ -114,4 +114,25 @@ export const deleteBooking = createApiHandler(
   'delete',
   '/me',
   'Booking canceled successfully!',
+);
+
+export const createUser = createApiHandler(
+  'users',
+  'create',
+  '/me',
+  'User created successfully!',
+);
+
+export const updateUser = createApiHandler(
+  'users',
+  'update',
+  '/me',
+  'User updated successfully!',
+);
+
+export const deactivateUser = createApiHandler(
+  'users',
+  'delete',
+  '/me',
+  'User deactivated successfully!',
 );

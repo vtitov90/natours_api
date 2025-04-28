@@ -12,11 +12,12 @@ router.get('/', authController.isLoggedIn, viewsController.getOverview);
 router.get('/tour/:slug', authController.isLoggedIn, viewsController.getTour);
 router.get('/login', authController.isLoggedIn, viewsController.getLoginForm);
 router.get('/signup', authController.isLoggedIn, viewsController.getSignUpForm);
+
 router.get('/me', authController.protect, viewsController.getAccount);
 router.get(
   '/my-tours',
-  // bookingController.createBookingCheckout,
   authController.protect,
+  // bookingController.createBookingCheckout,
   viewsController.getMyTours,
 );
 router.get('/my-reviews', authController.protect, viewsController.getMyReviews);
@@ -51,6 +52,18 @@ router.post(
 );
 
 router.get(
+  '/users/:id/edit',
+  authController.protect,
+  viewsController.getEditUserForm,
+);
+
+router.get(
+  '/users/new',
+  authController.protect,
+  viewsController.getEditUserForm,
+);
+
+router.get(
   '/reviews-list',
   authController.protect,
   authController.restrictTo('admin'),
@@ -62,6 +75,13 @@ router.get(
   authController.protect,
   authController.restrictTo('admin'),
   viewsController.getAllBookings,
+);
+
+router.get(
+  '/users-list',
+  authController.protect,
+  authController.restrictTo('admin'),
+  viewsController.getAllUsers,
 );
 
 module.exports = router;

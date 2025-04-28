@@ -82,6 +82,26 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  if (req.body.password && req.body.passwordConfirm) {
+    const user = await User.findById(req.params.id).select('+password');
+
+    if (!user) {
+      return next(new AppError('No user found with that ID', 404));
+    }
+
+    user.password = req.body.password;
+    user.passwordConfirm = req.body.passwordConfirm;
+
+    await user.save();
+
+    delete req.body.password;
+    delete req.body.passwordConfirm;
+  }
+
+  next();
+});
+
 exports.deleteMe = catchAsync(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user.id, { active: false });
 
@@ -91,13 +111,7 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.createUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined! Please use /signup instead',
-  });
-};
-
+exports.createUser = factory.createOne(User);
 exports.getAllUsers = factory.getAll(User);
 exports.getUser = factory.getOne(User);
 // Do NOT update passwords with this!

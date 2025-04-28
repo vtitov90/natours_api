@@ -122,6 +122,7 @@ body {
       from(#7dd56f),
       to(#28b487));
   background-image: linear-gradient(to right, #7dd56f, #28b487);
+  background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
   letter-spacing: 0.1rem;
@@ -1380,6 +1381,18 @@ hr {
   width: 4.5rem;
   border-radius: 50%;
   margin-right: 2rem;
+}
+
+
+.user__img {
+  position: absolute;
+  top: 29%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 10.5rem;
+  width: 10.5rem;
+  border-radius: 50%;
+  margin-bottom: 10px;
 }
 
 .error {

@@ -4,6 +4,7 @@ const User = require('../models/userModel');
 const Booking = require('../models/bookingModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const { getAllUsers } = require('./userController');
 
 exports.alerts = (req, res, next) => {
   const { alert } = req.query;
@@ -134,8 +135,19 @@ exports.getAllBookings = catchAsync(async (req, res, next) => {
     .filter((item) => item !== null); // Filter out any null values
 
   res.status(200).render('booking', {
-    title: 'My Tours',
+    title: 'All Tours',
     tours: bookingTours,
+  });
+});
+
+exports.getAllUsers = catchAsync(async (req, res, next) => {
+  const users = await User.find({ role: { $ne: 'admin' } }).select(
+    'name email photo role active',
+  );
+
+  res.status(200).render('users', {
+    title: 'All Users',
+    users,
   });
 });
 
@@ -311,6 +323,15 @@ exports.getEditBookingForm = async (req, res) => {
   }
 
   res.render('bookingForm', { booking, users, tours });
+};
+
+exports.getEditUserForm = async (req, res) => {
+  let user;
+  if (req.params.id) {
+    user = await User.findById(req.params.id);
+  }
+
+  res.render('userForm', { user });
 };
 
 exports.updateUserData = catchAsync(async (req, res, next) => {

@@ -1,0 +1,59 @@
+extends base
+
+include _noEntries
+
+block content
+  main.main
+    if users && users.length > 0
+      .card-container
+        each user in users
+          .card
+            .card__header
+              .card__picture
+                .card__picture-overlay &nbsp;
+                img.user__img(src=`/img/users/${user.photo}`, alt=`${user.name}`)
+              h3.heading-tertirary
+                span= user.name
+            .card__details
+              h4.card__sub-heading= `${user.role}`
+              .card__data
+                svg.card__icon
+                  use(xlink:href='/img/icons.svg#icon-mail')
+                span= user.email
+              .card__data
+                svg.card__icon
+                  use(xlink:href='/img/icons.svg#icon-user')
+                span= `Role: ${user.role.charAt(0).toUpperCase() + user.role.slice(1)}`
+              if user.active
+                .card__data
+                  svg.card__icon
+                    use(xlink:href='/img/icons.svg#icon-check')
+                  span Active Account
+              else 
+                .card__data
+                  svg.card__icon
+                    use(xlink:href='/img/icons.svg#icon-x')
+                  span Inactive Account
+
+            .card__footer_booking
+              if user.role !== 'admin'
+                a#edit_user.btn.btn--green.btn--small.btn__booking(href=`/users/${user._id}/edit`) Edit
+                a#deactivate.btn.btn--green-dark.btn--small.btn__booking(href="#" data-user-id=`${user._id}`) 
+                  span= user.active ? "Deactivate" : "Activate"
+              else 
+                p.card__footer-value Admin User
+                p.card__footer-text Special privileges
+      
+    
+      if user && (user.role === 'admin' || user.role === 'lead-guide')
+        .add-booking-container
+          a.btn-add-booking(href="/users/new") 
+            svg.btn-add-booking__icon
+              use(xlink:href='/img/icons.svg#icon-plus')
+    else
+      +noEntries(
+        "No users found",
+        'There are currently no users registered in the system.',
+        'Back to Home',
+        '/'
+      )

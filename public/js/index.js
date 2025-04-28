@@ -12,6 +12,9 @@ import {
   createBooking,
   updateBooking,
   deleteBooking,
+  createUser,
+  updateUser,
+  deactivateUser,
 } from './apiFactory.js';
 import { showAlert } from './alert';
 
@@ -19,8 +22,10 @@ import { showAlert } from './alert';
 const mapBox = document.getElementById('map');
 const loginForm = document.querySelector('.form--login');
 const logOutBtn = document.querySelector('.nav__el--logout');
-const userDataForm = document.querySelector('.form-user-data');
-const userPasswordForm = document.querySelector('.form-user-password');
+const userDataForm = document.getElementById('form-user-data');
+const userForm = document.getElementById('form-admin-data');
+const userPasswordForm = document.getElementById('form-user-password');
+const passwordForm = document.getElementById('form-admin-password');
 const bookBtn = document.getElementById('book-tour');
 const ratingSlider = document.getElementById('rating');
 const ratingValueDisplay = document.querySelector('.rating-value');
@@ -28,6 +33,7 @@ const reviewForm = document.querySelector('.review-form');
 const bookingForm = document.querySelector('.booking-form');
 const deleteButtons = document.querySelectorAll('[id=delete-tour]');
 const cancelButtons = document.querySelectorAll('[id=cancel]');
+const deactivateButtons = document.querySelectorAll('[id=deactivate]');
 // DELEGATION
 if (mapBox) {
   const locations = JSON.parse(mapBox.dataset.locations);
@@ -133,6 +139,46 @@ if (bookingForm) {
   });
 }
 
+if (userForm) {
+  userForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = new FormData();
+    form.append('name', document.getElementById('name').value);
+    form.append('email', document.getElementById('email').value);
+    form.append('role', document.getElementById('role').value);
+    form.append('active', document.getElementById('active').value);
+    form.append('photo', document.getElementById('photo').files[0]);
+    if (
+      document.getElementById('password-create').value !==
+      document.getElementById('passwordConfirm-create').value
+    ) {
+      showAlert('error', 'Passwords must be the same');
+      return;
+    }
+
+    if (
+      ('password',
+      document.getElementById('password-create').value &&
+        document.getElementById('passwordConfirm-create').value)
+    ) {
+      form.append('password', document.getElementById('password-create').value);
+      form.append(
+        'passwordConfirm',
+        document.getElementById('passwordConfirm-create').value,
+      );
+    }
+
+    let id;
+    if (window.location.pathname.split('/').includes('edit')) {
+      id = window.location.pathname.split('/')[2];
+      updateUser(id, form);
+      return;
+    }
+
+    createUser(id, form);
+  });
+}
+
 if (deleteButtons.length > 0) {
   deleteButtons.forEach((button) => {
     button.addEventListener('click', function (e) {
@@ -155,6 +201,20 @@ if (cancelButtons.length > 0) {
       const bookingId = this.dataset.bookingId;
       if (confirm('Are you sure you want to cancel this booking?')) {
         deleteBooking(bookingId);
+      }
+
+      return false;
+    });
+  });
+}
+
+if (deactivateButtons.length > 0) {
+  deactivateButtons.forEach((button) => {
+    button.addEventListener('click', function (e) {
+      e.preventDefault();
+      const id = this.dataset.userId;
+      if (confirm('Are you sure you want to deactivate this user?')) {
+        deactivateUser(id);
       }
 
       return false;
