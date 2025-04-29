@@ -23,7 +23,7 @@ block content
         
         .form__group
           label.form__label(for="price") Price
-          input#price.form__input(type="number", min="0", step="1", name="price", value=0, required)
+          input#price.form__input(type="number", min="0", step="1", name="price", value=!isNewBooking? booking.price : 0, required)
         
         .form__group
           button.btn.btn--green= isNewBooking ? 'Create Booking' : 'Update Booking'

@@ -159,7 +159,10 @@ if (userForm) {
     form.append('email', document.getElementById('email').value);
     form.append('role', document.getElementById('role').value);
     form.append('active', document.getElementById('active').value);
-    form.append('photo', document.getElementById('photo').files[0]);
+    if (document.getElementById('photo').files[0]) {
+      form.append('photo', document.getElementById('photo').files[0]);
+    }
+
     if (
       document.getElementById('password-create').value !==
       document.getElementById('passwordConfirm-create').value

@@ -1659,7 +1659,10 @@ select.form__input::-webkit-scrollbar-thumb {
   text-align: center;
 }
 
-
+::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
 
 ::-webkit-scrollbar-track {
   border-radius: 0;
