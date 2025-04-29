@@ -506,7 +506,7 @@ exports.processStatisticsForm = async (req, res) => {
             borderWidth: 1,
           },
           {
-            label: 'Revenue (€)',
+            label: 'Revenue ($)',
             data: popularTours.map((tour) => tour.totalRevenue),
             backgroundColor: '#2998ff',
             borderColor: '#5643fa',
@@ -544,7 +544,7 @@ exports.processStatisticsForm = async (req, res) => {
               beginAtZero: true,
               title: {
                 display: true,
-                text: 'Revenue (€)',
+                text: 'Revenue ($)',
               },
             },
           },
