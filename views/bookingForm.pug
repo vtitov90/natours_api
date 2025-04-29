@@ -1,0 +1,29 @@
+extends base
+
+block content
+  main.main
+    .form-container
+      - const isNewBooking = !booking || !booking._id
+      h2.heading-secondary.ma-bt-md= isNewBooking ? 'Create New Booking' : 'Modify Booking'
+      
+      form.form.booking-form
+        .form__group
+          label.form__label(for="user") User
+          select#user.form__input(name="user", required)
+            option(value='') Select User
+            each user in users
+              option(value=user._id, selected=booking && booking.user._id.toString() === user._id.toString())= user.name
+
+        .form__group
+          label.form__label(for="tour") Tour
+          select#tour.form__input(name="tour", required)
+            option(value='') Select Tour
+            each tour in tours
+              option(value=tour._id, selected=booking && booking.tour._id.toString() === tour._id.toString())= tour.name
+        
+        .form__group
+          label.form__label(for="price") Price
+          input#price.form__input(type="number", min="0", step="1", name="price", value=!isNewBooking? booking.price : 0, required)
+        
+        .form__group
+          button.btn.btn--green= isNewBooking ? 'Create Booking' : 'Update Booking'

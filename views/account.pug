@@ -14,26 +14,25 @@ block content
         ul.side-nav
           +navItem('#', 'Settings', 'settings', true)
           +navItem('/my-tours', 'My bookings', 'briefcase')
-          +navItem('#', 'My reviews','star')
-          +navItem('#', 'Billing', 'credit-card')
+          +navItem('/my-reviews', 'My reviews','star')
 
-        - if(user.role === "admin")
+        - if(user.role === 'admin' || user.role === 'lead-guide')
           .admin-nav
-            h5.admin-nav__heading Admin
+            h5.admin-nav__heading= `${user.role}`
             ul.side-nav
-              +navItem('#', 'Manage tours', 'map')
-              +navItem('#', 'Manage users', 'users')
-              +navItem('#', 'Manage reviews','star')
-              +navItem('#', 'Manage bookings','briefcase')
+              +navItem('/statistics', 'Statistics', 'bar-chart-2')
+              - if(user.role === "admin" || user.role === 'lead-guide' || user.role === 'guide')
+              +navItem('/tour-list', 'Manage tours', 'map')
+              - if(user.role === "admin")
+              +navItem('/users-list', 'Manage users', 'users')
+              +navItem('/reviews-list', 'Manage reviews','star')
+              +navItem('/bookings-list', 'Manage bookings','briefcase')
       .user-view__content
         .user-view__form-container
           h2.heading-secondary.ma-bt-md Your account settings
 
-          //- Without API
-          //- form.form.form-user-data(action="/submit-user-data" method="POST" enctype="multipart/form-data)
 
-          //- With API
-          form.form.form-user-data
+          form#form-user-data.form.form-user-data
             .form__group
               label.form__label(for='name') Name
               input#name.form__input(type='text', value=`${user.name}`, required, name="name")
@@ -49,7 +48,7 @@ block content
         .line &nbsp;
         .user-view__form-container
           h2.heading-secondary.ma-bt-md Password change
-          form.form.form-user-password
+          form#form-user-password.form.form-user-password
             .form__group
               label.form__label(for='password-current') Current password
               input#password-current.form__input(type='password', placeholder='••••••••', required, minlength='8')

@@ -1,0 +1,61 @@
+extends base
+
+block content
+  main.main
+    .user-view__content
+      .user-view__form-container
+        - const isNewUser = !user || !user._id
+        h2.heading-secondary.ma-bt-md= isNewUser ? 'Create New User' : 'Edit User'
+
+
+        form#form-admin-data.form.form-user-data(enctype="multipart/form-data")
+          .form__group
+            label.form__label(for="name") Name
+            input.form__input#name(type="text" value=user ? user.name : '' required name="name")
+          .form__group
+            label.form__label(for="email") Email address
+            input.form__input#email(type="email" value=user ? user.email : '' required name="email")
+          .form__group
+            label.form__label(for="role") Role
+            select.form__input#role(name="role")
+              each role in ['user', 'guide', 'lead-guide', 'admin']
+                option(
+                  value=role 
+                  selected=user && user.role === role
+                )= role.charAt(0).toUpperCase() + role.slice(1).replace('-', ' ')
+          .form__group
+            label.form__label(for="active") Status
+            select.form__input#active(name="active")
+              option(value="true" selected=!user || user.active === true) Active
+              option(value="false" selected=user && user.active === false) Inactive
+          .form__group.form__photo-upload
+            img.form__user-photo(
+              src=user && user.photo ? `/img/users/${user.photo}` : '/img/users/default.jpg' 
+              alt="User photo"
+            )
+            input.form__upload(type="file" accept="image/*" id="photo" name="photo")
+            label(for="photo") Choose new photo
+
+
+          .form__group
+            label.form__label(for="password-create") New Password
+            input.form__input#password-create(
+                type="password" 
+                placeholder="••••••••" 
+                required=isNewUser
+                minlength="8" 
+                name="password"
+              )
+          .form__group
+            label.form__label(for="passwordConfirm-create") Confirm Password
+            input.form__input#passwordConfirm-create(
+                type="password" 
+                placeholder="••••••••" 
+                required=isNewUser
+                minlength="8" 
+                name="passwordConfirm"
+              )
+
+          
+          .form__group.right
+            button.btn.btn--small.btn--green= isNewUser ? 'Create User' : 'Save Settings'

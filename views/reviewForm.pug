@@ -1,0 +1,22 @@
+extends base
+
+block content
+  main.main
+    .form-container
+      - const isNewReview = !review || !review._id
+      h2.heading-secondary.ma-bt-md= isNewReview ? `Review "${tour.name}"` : `"${review.tour.name}" review`
+      
+      form.form.review-form
+        .form__group
+          label.form__label(for="review") Review
+          textarea#review.form__textarea(name="review", required, minlength="10", rows="7", cols="20")= isNewReview ? '' : review.review
+                  
+        .form__group
+          label.form__label(for="rating") Rating
+          .rating-container
+            .rating-slider-container
+              input#rating.rating-slider(name="rating", type="range", min="1", max="5", step="0.1", value=isNewReview ? '5' : review.rating)
+              span.rating-value= isNewReview ? '5' : review.rating
+                    
+        .form__group
+          button.btn.btn--green= isNewReview ? 'Submit Review' : 'Update Review'

@@ -1,0 +1,19 @@
+extends base
+
+block content
+  main.main
+    .container
+      h2.heading-secondary.ma-bt-lg Statistics
+      
+      .statistics-form-container
+      
+        form.statistics-form(action="/statistics" method="POST")
+          .form__group
+            label.form__label(for="statisticType") Choose statistics type:
+            select.form__input#statisticType(name="statisticType" required)
+              option(value="") -- Please select --
+              option(value="monthly") Monthly Tours
+              option(value="popular") Most Popular Tours
+          
+          .form__group
+            button.btn.btn--green(type="submit") View Statistics

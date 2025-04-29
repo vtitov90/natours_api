@@ -1,0 +1,138 @@
+extends base
+
+block content
+  main.main
+    .user-view__content
+      .user-view__form-container
+        - const isNewTour = !tour || !tour._id
+        h2.heading-secondary.ma-bt-md= isNewTour ? 'Create New Tour' : 'Edit Tour'
+        
+        form#form-tour-data.form(enctype="multipart/form-data")
+          .form__group
+            label.form__label(for="name") Tour Name
+            input.form__input#name(type="text" value=tour ? tour.name : '' required name="name")
+          
+          .form__group
+            label.form__label(for="summary") Summary
+            input.form__input#summary(type="text" value=tour ? tour.summary : '' required name="summary")
+            
+          .form__group
+            label.form__label(for="description") Description
+            textarea.form__textarea#description(rows="5" required name="description")= tour ? tour.description : ''
+          
+          .form__group
+            label.form__label(for="duration") Duration (days)
+            input.form__input#duration(type="number" value=tour ? tour.duration : '' required name="duration" min="1")
+          
+          .form__group
+            label.form__label(for="maxGroupSize") Max Group Size
+            input.form__input#maxGroupSize(type="number" value=tour ? tour.maxGroupSize : '' required name="maxGroupSize" min="1")
+          
+          .form__group
+            label.form__label(for="difficulty") Difficulty
+            select.form__input#difficulty(name="difficulty")
+              each level in ['easy', 'medium', 'difficult']
+                option(
+                  value=level 
+                  selected=tour && tour.difficulty === level
+                )= level.charAt(0).toUpperCase() + level.slice(1)
+                
+          .form__group
+            label.form__label(for="price") Price
+            input.form__input#price(type="number" value=tour ? tour.price : '' required name="price" min="0")
+            
+          .form__group
+            label.form__label(for="startAddress") Start Address
+            input.form__input#startAddress(type="text" value=tour && tour.startLocation ? tour.startLocation.address : '' name="startAddress")
+            
+          .form__group
+            label.form__label(for="startDescription") Start Location Description
+            input.form__input#startDescription(type="text" value=tour && tour.startLocation ? tour.startLocation.description : '' name="startDescription")
+          
+          .form__group
+            label.form__label(for="startLat") Start Coordinates (Latitude)
+            input.form__input#startLat(type="text" value=tour && tour.startLocation ? tour.startLocation.coordinates[1] : '' name="startLat")
+          
+          .form__group
+            label.form__label(for="startLng") Start Coordinates (Longitude)
+            input.form__input#startLng(type="text" value=tour && tour.startLocation ? tour.startLocation.coordinates[0] : '' name="startLng")
+          
+          .form__group.form__photo-upload
+            img.form__user-photo(
+              src=tour && tour.imageCover ? `/img/tours/${tour.imageCover}` : '/img/tours/default.jpg'
+              alt="Tour cover image"
+            )
+            input.form__upload(type="file" accept="image/*" id="imageCover" name="imageCover")
+            label(for="imageCover") Choose cover image
+            
+          .form__group
+            label.form__label Tour Images
+            .form__group.form__photo-upload
+              input.form__upload(type="file" accept="image/*" id="images" name="images" multiple)
+              label(for="images") Choose 3 tour images
+          
+          .form__group
+            label.form__label Tour Guides
+            select.form__input#guides(name="guides" multiple)
+              each guide in guides
+                - const isSelected = tour && tour.guides && tour.guides.some(g => g.id === guide.id)
+                option(
+                  value=guide.id
+                  selected=isSelected
+                )= guide.name
+          
+          h3.heading-secondary.ma-bt-md Tour Locations
+          
+          .locations-container
+            if tour && tour.locations && tour.locations.length > 0
+              each location, index in tour.locations
+                .form__group.location-group
+                  h4.form__label Location #{index + 1}
+                  .form__group
+                    label.form__label(for=`locationDesc${index}`) Description
+                    input.form__input(id=`locationDesc${index}` type="text" value=location.description name=`locations[${index}][description]`)
+                  .form__group
+                    label.form__label(for=`locationDay${index}`) Day
+                    input.form__input(id=`locationDay${index}` type="number" value=location.day min="1" name=`locations[${index}][day]`)
+                  .form__group
+                    label.form__label(for=`locationLat${index}`) Latitude
+                    input.form__input(id=`locationLat${index}` type="text" value=location.coordinates[1] name=`locations[${index}][lat]`)
+                  .form__group
+                    label.form__label(for=`locationLng${index}`) Longitude
+                    input.form__input(id=`locationLng${index}` type="text" value=location.coordinates[0] name=`locations[${index}][lng]`)
+            else
+              .form__group.location-group
+                h4.form__label Location 1
+                .form__group
+                  label.form__label(for="locationDesc0") Description
+                  input.form__input(id="locationDesc0" type="text" name="locations[0][description]")
+                .form__group
+                  label.form__label(for="locationDay0") Day
+                  input.form__input(id="locationDay0" type="number" min="1" name="locations[0][day]")
+                .form__group
+                  label.form__label(for="locationLat0") Latitude
+                  input.form__input(id="locationLat0" type="text" name="locations[0][lat]")
+                .form__group
+                  label.form__label(for="locationLng0") Longitude
+                  input.form__input(id="locationLng0" type="text" name="locations[0][lng]")
+          
+          button.btn.btn--small.btn--green.add-location-btn.btn-margin(type="button") Add Location
+          
+          h3.heading-secondary.ma-bt-md.heading-block Tour Start Dates
+          
+          .dates-container
+            if tour && tour.startDates && tour.startDates.length > 0
+              each date, index in tour.startDates
+                .form__group
+                  - const formattedDate = new Date(date).toISOString().split('T')[0]
+                  label.form__label(for=`date${index}`) Date #{index + 1}
+                  input.form__input(id=`date${index}` type="date" value=formattedDate name=`startDates[${index}]`)
+            else
+              .form__group
+                label.form__label(for="date0") Date 1
+                input.form__input(id="date0" type="date" name="startDates[0]")
+          
+          button.btn.btn--small.btn--green.add-date-btn.btn-margin(type="button") Add Date
+                    
+          .form__group.right
+            button.btn.btn--small.btn--green= isNewTour ? 'Create Tour' : 'Save Tour'

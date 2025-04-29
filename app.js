@@ -22,7 +22,7 @@ const bookingController = require('./controllers/bookingController');
 
 const app = express();
 
-app.set('trust proxy', true);
+// app.set('trust proxy', true);
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
@@ -45,6 +45,7 @@ app.use(
           "'self'",
           "'unsafe-inline'",
           'https://cdnjs.cloudflare.com',
+          'https://cdn.jsdelivr.net',
         ],
         connectSrc: ["'self'", 'ws://localhost:1234'],
       },

@@ -81,6 +81,25 @@ exports.webhookCheckout = (req, res, next) => {
   res.status(200).json({ received: true });
 };
 
+exports.checkIfUserBooking = catchAsync(async (req, res, next) => {
+  const booking = await Booking.findById(req.params.id);
+  if (!booking) {
+    return next(new AppError('No booking found with that ID', 404));
+  }
+
+  if (
+    req.user.role !== 'admin' &&
+    req.user.role !== 'lead-guide' &&
+    req.user.id !== booking.user.id
+  ) {
+    return next(
+      new AppError('You do not have permission to perform this action', 403),
+    );
+  }
+
+  next();
+});
+
 exports.getAllBookings = factory.getAll(Booking);
 exports.getBooking = factory.getOne(Booking);
 exports.createBooking = factory.createOne(Booking);

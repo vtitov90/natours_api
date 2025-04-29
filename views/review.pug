@@ -1,0 +1,51 @@
+extends base
+
+include _noEntries
+
+block content
+  main.main
+    if reviews && reviews.length > 0
+      each review in reviews
+        .review__container
+          if review.tour
+            img.review__image(src=`/img/tours/${review.tour.imageCover}`, alt=`${review.tour.name}`)
+            .review_info__container
+              .review_header
+                if review.byMe
+                  h2= review.tour.name
+                  - const date = review.createdAt;
+                  - const day = date.getDate().toString().padStart(2, '0');
+                  - const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                  - const year = date.getFullYear();
+                  - const hours = date.getHours().toString().padStart(2, '0');
+                  - const minutes = date.getMinutes().toString().padStart(2, '0');
+                  p.review_par= `${day}.${month}.${year} ${hours}:${minutes}`
+                else 
+                  h2= `${review.tour.name} `
+                    i=`| Review by  ${review.user.name}`
+                    .review_info__buttons
+                  - const date = review.createdAt;
+                  - const day = date.getDate().toString().padStart(2, '0');
+                  - const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                  - const year = date.getFullYear();
+                  - const hours = date.getHours().toString().padStart(2, '0');
+                  - const minutes = date.getMinutes().toString().padStart(2, '0');
+                  p.review_par= `${day}.${month}.${year} ${hours}:${minutes}`
+                  img.form__user-photo(src=`/img/users/${review.user.photo}`, alt=`${review.user.name}`) 
+              hr
+              p= review.review
+              hr
+              .review_info__footer
+                .reviews_info__stars
+                  each star in [1, 2, 3, 4, 5]
+                    svg.reviews__star(class=`reviews__star--${review.rating >= star ? 'active': 'inactive'}`)
+                      use(xlink:href='/img/icons.svg#icon-star')
+                .review_info__buttons
+                  a#update-review.btn.btn--green.btn--small.btn--edit(href=`/reviews/${review.id}/edit`) Edit
+                  a#delete-review.btn.btn--green-dark.btn--small.btn--delete(href="#", data-review-id=`${review.id}`) Delete
+          else
+            h3 Tour no longer available
+            h4= review.review
+    else
+      +noEntries("You haven't write any reviews yet",'Explore our exciting tours and share your emotions!','Write Review','/my-tours')
+      .no-info
