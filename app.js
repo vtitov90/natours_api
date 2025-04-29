@@ -45,6 +45,7 @@ app.use(
           "'self'",
           "'unsafe-inline'",
           'https://cdnjs.cloudflare.com',
+          'https://cdn.jsdelivr.net',
         ],
         connectSrc: ["'self'", 'ws://localhost:1234'],
       },

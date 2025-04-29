@@ -352,8 +352,12 @@ exports.getEditTourForm = async (req, res) => {
     });
   }
   const users = await User.find({ role: { $in: ['guide', 'lead-guide'] } });
-  console.log(users);
+
   res.render('tourForm', { tour, guides: users });
+};
+
+exports.getStatisticsPage = (req, res, next) => {
+  res.status(200).render('statistics');
 };
 
 exports.updateUserData = catchAsync(async (req, res, next) => {
@@ -373,3 +377,182 @@ exports.updateUserData = catchAsync(async (req, res, next) => {
     user: updatedUser,
   });
 });
+
+// controllers/statisticsController.js
+exports.processStatisticsForm = async (req, res) => {
+  const { statisticType } = req.body;
+
+  switch (statisticType) {
+    case 'monthly':
+      // Get monthly tour statistics
+      const monthlyData = await Tour.aggregate([
+        { $unwind: '$startDates' },
+        {
+          $group: {
+            _id: { $month: '$startDates' },
+            numTourStarts: { $sum: 1 },
+            tours: { $push: '$name' },
+          },
+        },
+        {
+          $addFields: { month: '$_id' },
+        },
+        {
+          $project: {
+            _id: 0,
+            month: 1,
+            numTourStarts: 1,
+            tours: 1,
+          },
+        },
+        {
+          $sort: { month: 1 },
+        },
+      ]);
+
+      // Array of month names
+      const monthNames = [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
+      ];
+
+      // Create complete data for all months (even if no data exists)
+      const fullMonthsData = Array.from({ length: 12 }, (_, i) => {
+        const existingData = monthlyData.find((item) => item.month === i + 1);
+        return {
+          month: i + 1,
+          monthName: monthNames[i],
+          numTourStarts: existingData ? existingData.numTourStarts : 0,
+          tours: existingData ? existingData.tours : [],
+        };
+      });
+
+      // Format data for chart
+      const chartData = {
+        labels: fullMonthsData.map((item) => item.monthName),
+        datasets: [
+          {
+            label: 'Number of Tours per Month',
+            data: fullMonthsData.map((item) => item.numTourStarts),
+            backgroundColor: '#7dd56f',
+          },
+        ],
+      };
+
+      // Pass data to template
+      res.render('chart', {
+        title: 'Tour Statistics Chart',
+        chartData: JSON.stringify(chartData),
+      });
+      break;
+
+    case 'popular':
+      // Get popular tours based on bookings
+      const popularTours = await Booking.aggregate([
+        {
+          $group: {
+            _id: '$tour',
+            bookingsCount: { $sum: 1 },
+            totalRevenue: { $sum: '$price' },
+          },
+        },
+        {
+          $lookup: {
+            from: 'tours',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'tourDetails',
+          },
+        },
+        {
+          $unwind: '$tourDetails',
+        },
+        {
+          $project: {
+            _id: 1,
+            tourName: '$tourDetails.name',
+            bookingsCount: 1,
+            totalRevenue: 1,
+            averagePrice: { $divide: ['$totalRevenue', '$bookingsCount'] },
+          },
+        },
+        {
+          $sort: { bookingsCount: -1 },
+        },
+        {
+          $limit: 10,
+        },
+      ]);
+
+      // Format data for chart
+      const popularChartData = {
+        labels: popularTours.map((tour) => tour.tourName),
+        datasets: [
+          {
+            label: 'Number of Bookings',
+            data: popularTours.map((tour) => tour.bookingsCount),
+            backgroundColor: '#7dd56f',
+            borderColor: '#55c57a',
+            borderWidth: 1,
+          },
+          {
+            label: 'Revenue (€)',
+            data: popularTours.map((tour) => tour.totalRevenue),
+            backgroundColor: '#2998ff',
+            borderColor: '#5643fa',
+            borderWidth: 1,
+            yAxisID: 'revenue',
+          },
+        ],
+      };
+
+      // Additional data for the template
+      const popularToursData = popularTours.map((tour) => ({
+        name: tour.tourName,
+        bookings: tour.bookingsCount,
+        revenue: tour.totalRevenue.toFixed(2),
+        averagePrice: tour.averagePrice.toFixed(2),
+      }));
+
+      // Pass data to template
+      res.render('chart', {
+        title: 'Popular Tours Statistics',
+        chartData: JSON.stringify(popularChartData),
+        chartType: 'bar',
+        toursData: popularToursData,
+        chartOptions: JSON.stringify({
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Number of Bookings',
+              },
+            },
+            revenue: {
+              position: 'right',
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Revenue (€)',
+              },
+            },
+          },
+        }),
+      });
+      break;
+
+    default:
+      return next(new AppError('Unknown action', 500));
+  }
+};

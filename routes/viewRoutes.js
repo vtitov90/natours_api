@@ -85,6 +85,20 @@ router.get(
 );
 
 router.get(
+  '/statistics',
+  authController.protect,
+  authController.restrictTo('admin', 'lead-guide'),
+  viewsController.getStatisticsPage,
+);
+
+router.post(
+  '/statistics',
+  authController.protect,
+  authController.restrictTo('admin', 'lead-guide'),
+  viewsController.processStatisticsForm,
+);
+
+router.get(
   '/tour-list',
   authController.protect,
   authController.restrictTo('admin', 'lead-guide', 'guide'),

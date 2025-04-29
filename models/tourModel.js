@@ -198,10 +198,11 @@ tourSchema.pre('deleteMany', async function (next) {
 
 tourSchema.post('deleteMany', async function () {
   if (this._tourIds && this._tourIds.length > 0) {
-    // Удаляем только связанные ревью для каждого тура
-    for (const tourId of this._tourIds) {
-      await this.model('Review').deleteMany({ tour: tourId });
-    }
+    await Promise.all(
+      this._tourIds.map((tourId) =>
+        this.model('Review').deleteMany({ tour: tourId }),
+      ),
+    );
   }
 });
 
