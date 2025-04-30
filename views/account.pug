@@ -16,17 +16,18 @@ block content
           +navItem('/my-tours', 'My bookings', 'briefcase')
           +navItem('/my-reviews', 'My reviews','star')
 
-        - if(user.role === 'admin' || user.role === 'lead-guide')
-          .admin-nav
-            h5.admin-nav__heading= `${user.role}`
-            ul.side-nav
-              +navItem('/statistics', 'Statistics', 'bar-chart-2')
-              - if(user.role === "admin" || user.role === 'lead-guide' || user.role === 'guide')
-              +navItem('/tour-list', 'Manage tours', 'map')
-              - if(user.role === "admin")
-              +navItem('/users-list', 'Manage users', 'users')
-              +navItem('/reviews-list', 'Manage reviews','star')
-              +navItem('/bookings-list', 'Manage bookings','briefcase')
+          -if(user.role === 'admin' || user.role === 'lead-guide' || user.role === 'guide')
+            .admin-nav
+              h5.admin-nav__heading= `${user.role}`
+              ul.side-nav
+                +navItem('/statistics', 'Statistics', 'bar-chart-2')
+                -if(user.role === "admin" || user.role === 'lead-guide' || user.role === 'guide')
+                  +navItem('/tour-list', 'Manage tours', 'map')
+                -if(user.role === "admin")
+                  +navItem('/users-list', 'Manage users', 'users')
+                  +navItem('/reviews-list', 'Manage reviews','star')
+                -if(user.role === 'admin' || user.role === 'lead-guide')
+                  +navItem('/bookings-list', 'Manage bookings','briefcase')
       .user-view__content
         .user-view__form-container
           h2.heading-secondary.ma-bt-md Your account settings

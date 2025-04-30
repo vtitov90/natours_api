@@ -34,6 +34,7 @@ block content
                 span= `${tour.maxGroupSize} people`
 
             .card__footer
+            - if(user.role === "admin" || user.role === 'lead-guide')
               .review_info__buttons
                 a.btn.btn--green-dark.btn--small.btn--edit(href=`/tours/${tour.slug}/edit`) Edit
                 a#delete-tour.btn.btn--green.btn--small.btn--delete(href="#" data-tour-id=`${tour._id}`) Delete
