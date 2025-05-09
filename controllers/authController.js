@@ -16,7 +16,8 @@ const signRefreshToken = (id) =>
     expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,
   });
 
-exports.createSendToken = async (user, statusCode, req, res) => {
+// for tests add exports.
+const createSendToken = async (user, statusCode, req, res) => {
   const accessToken = signToken(user._id);
   const refreshToken = signRefreshToken(user._id);
 
