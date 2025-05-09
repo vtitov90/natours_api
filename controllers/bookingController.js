@@ -9,6 +9,11 @@ const AppError = require('../utils/appError');
 exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   // 1) Get the currently booked tour
   const tour = await Tour.findById(req.params.tourId);
+
+  if (!tour) {
+    return next(new AppError('Tour not found', 404));
+  }
+
   const booking = await Booking.findOne({ tour, user: req.user });
   if (booking)
     return next(new AppError('User has already booked this tour', 409));
