@@ -379,7 +379,7 @@ exports.updateUserData = catchAsync(async (req, res, next) => {
 });
 
 // controllers/statisticsController.js
-exports.processStatisticsForm = async (req, res) => {
+exports.processStatisticsForm = async (req, res, next) => {
   const { statisticType } = req.body;
 
   switch (statisticType) {
@@ -545,6 +545,244 @@ exports.processStatisticsForm = async (req, res) => {
               title: {
                 display: true,
                 text: 'Revenue ($)',
+              },
+            },
+          },
+        }),
+      });
+      break;
+
+    case 'userRoles':
+      // Get count of users by role
+      const userRoles = await User.aggregate([
+        {
+          $group: {
+            _id: '$role',
+            count: { $sum: 1 },
+          },
+        },
+        {
+          $project: {
+            role: '$_id',
+            count: 1,
+            _id: 0,
+          },
+        },
+        {
+          $sort: { role: 1 },
+        },
+      ]);
+
+      console.log(userRoles);
+      // Format data for chart
+      const userRolesChartData = {
+        labels: userRoles.map((item) => item.role),
+        datasets: [
+          {
+            label: 'User Count by Role',
+            data: userRoles.map((item) => item.count),
+            backgroundColor: '#7dd56f',
+            borderWidth: 1,
+          },
+        ],
+      };
+
+      // Pass data to template
+      res.render('chart', {
+        title: 'User Roles Distribution',
+        chartData: JSON.stringify(userRolesChartData),
+        chartType: 'pie',
+        userData: userRoles,
+        chartOptions: JSON.stringify({
+          plugins: {
+            legend: {
+              position: 'right',
+            },
+            tooltip: {
+              callbacks: {
+                label: (context) => {
+                  const label = context.label || '';
+                  const value = context.raw || 0;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = Math.round((value / total) * 100);
+                  return `${label}: ${value} (${percentage}%)`;
+                },
+              },
+            },
+          },
+        }),
+      });
+      break;
+
+    case 'topBookers':
+      // Get users with the most bookings
+      const topBookers = await Booking.aggregate([
+        {
+          $group: {
+            _id: '$user',
+            bookingsCount: { $sum: 1 },
+            totalSpent: { $sum: '$price' },
+          },
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'userDetails',
+          },
+        },
+        {
+          $unwind: '$userDetails',
+        },
+        {
+          $project: {
+            _id: 0,
+            userId: '$_id',
+            name: '$userDetails.name',
+            email: '$userDetails.email',
+            bookingsCount: 1,
+            totalSpent: 1,
+            averageSpend: { $divide: ['$totalSpent', '$bookingsCount'] },
+          },
+        },
+        {
+          $sort: { bookingsCount: -1 },
+        },
+        {
+          $limit: 10,
+        },
+      ]);
+
+      // Format data for chart
+      const topBookersChartData = {
+        labels: topBookers.map((user) => user.name),
+        datasets: [
+          {
+            label: 'Number of Bookings',
+            data: topBookers.map((user) => user.bookingsCount),
+            backgroundColor: '#7dd56f',
+            borderColor: '#55c57a',
+            borderWidth: 1,
+          },
+          {
+            label: 'Total Spent ($)',
+            data: topBookers.map((user) => user.totalSpent),
+            backgroundColor: '#2998ff',
+            borderColor: '#5643fa',
+            borderWidth: 1,
+            yAxisID: 'spent',
+          },
+        ],
+      };
+
+      // Additional data for the template
+      const topBookersData = topBookers.map((user) => ({
+        name: user.name,
+        email: user.email,
+        bookings: user.bookingsCount,
+        spent: user.totalSpent.toFixed(2),
+        averageSpend: user.averageSpend.toFixed(2),
+      }));
+
+      // Pass data to template
+      res.render('chart', {
+        title: 'Top Bookers',
+        chartData: JSON.stringify(topBookersChartData),
+        chartType: 'bar',
+        userData: topBookersData,
+        chartOptions: JSON.stringify({
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Number of Bookings',
+              },
+            },
+            spent: {
+              position: 'right',
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Total Spent ($)',
+              },
+            },
+          },
+        }),
+      });
+      break;
+
+    case 'priceDistribution':
+      // Define price ranges
+      const priceRanges = [
+        { min: 0, max: 500, label: '$0 - $500' },
+        { min: 501, max: 1000, label: '$501 - $1000' },
+        { min: 1001, max: 1500, label: '$1001 - $1500' },
+        { min: 1501, max: 2000, label: '$1501 - $2000' },
+        { min: 2001, max: Infinity, label: '$2001+' },
+      ];
+
+      // Get all bookings with price
+      const bookings = await Booking.aggregate([
+        {
+          $project: {
+            price: 1,
+          },
+        },
+      ]);
+
+      // Count bookings in each price range
+      const priceDistribution = priceRanges.map((range) => {
+        const count = bookings.filter(
+          (booking) => booking.price >= range.min && booking.price <= range.max,
+        ).length;
+
+        return {
+          range: range.label,
+          count,
+        };
+      });
+
+      // Format data for chart
+      const priceDistributionChartData = {
+        labels: priceDistribution.map((item) => item.range),
+        datasets: [
+          {
+            label: 'Number of Bookings',
+            data: priceDistribution.map((item) => item.count),
+            backgroundColor: '#7dd56f',
+            borderWidth: 1,
+          },
+        ],
+      };
+
+      // Pass data to template
+      res.render('chart', {
+        title: 'Booking Price Distribution',
+        chartData: JSON.stringify(priceDistributionChartData),
+        chartType: 'bar',
+        distributionData: priceDistribution,
+        chartOptions: JSON.stringify({
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Number of Bookings',
+              },
+            },
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: (context) => {
+                  const label = context.label || '';
+                  const value = context.raw || 0;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = Math.round((value / total) * 100);
+                  return `${label}: ${value} bookings (${percentage}%)`;
+                },
               },
             },
           },
